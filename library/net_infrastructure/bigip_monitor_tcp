@@ -368,12 +368,18 @@ def main():
         if port is None:
             port = cur_ipport['ipport']['port']
     else: # use API defaults if not defined to create it
-        if interval is None:        interval = 5
-        if timeout is None:         timeout = 16
-        if ip is None:              ip = '0.0.0.0'
-        if port is None:            port = 0
-        if send is None:            send = ''
-        if receive is None:         receive = ''
+        if interval is None:        
+            interval = 5
+        if timeout is None:         
+            timeout = 16
+        if ip is None:              
+            ip = '0.0.0.0'
+        if port is None:            
+            port = 0
+        if send is None:            
+            send = ''
+        if receive is None:         
+            receive = ''
 
     # define and set address type
     if ip == '0.0.0.0' and port == 0:
@@ -459,7 +465,7 @@ def main():
 
     module.exit_json(**result)
 
-# include magic from lib/ansible/module_common.py
-#<<INCLUDE_ANSIBLE_MODULE_COMMON>>
+# import module snippets
+from ansible.module_utils.basic import *
 main()
 

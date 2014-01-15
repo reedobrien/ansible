@@ -58,7 +58,7 @@ def changed(*a, **kw):
     if not 'changed' in item:
         changed = False
         if ('results' in item    # some modules return a 'results' key
-                and type(item['results']) == list 
+                and type(item['results']) == list
                 and type(item['results'][0]) == dict):
             for result in item['results']:
                 changed = changed or result.get('changed', False)
@@ -76,9 +76,12 @@ def skipped(*a, **kw):
 
 def mandatory(a):
     ''' Make a variable mandatory '''
-    if not a:
+    try:
+        a
+    except NameError:
         raise errors.AnsibleFilterError('Mandatory variable not defined.')
-    return a
+    else:
+        return a
 
 def bool(a):
     ''' return a bool for the arg '''
@@ -125,6 +128,15 @@ def unique(a):
 
 def intersect(a, b):
     return set(a).intersection(b)
+
+def difference(a, b):
+    return set(a).difference(b)
+
+def symmetric_difference(a, b):
+    return set(a).symmetric_difference(b)
+
+def union(a, b):
+    return set(a).union(b)
 
 class FilterModule(object):
     ''' Ansible core jinja2 filters '''
@@ -183,5 +195,8 @@ class FilterModule(object):
             # list
             'unique' : unique,
             'intersect': intersect,
+            'difference': difference,
+            'symmetric_difference': symmetric_difference,
+            'union': union,
         }
-    
+

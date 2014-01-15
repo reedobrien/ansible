@@ -1,5 +1,4 @@
-#!/usr/bin/env python
-#
+#!/usr/bin/python
 
 # (c) 2013, Cove Schneider
 #
@@ -23,6 +22,7 @@
 DOCUMENTATION = '''
 ---
 module: docker
+version_added: "1.4"
 short_description: manage docker containers
 description:
      - Manage the life cycle of docker containers.
@@ -133,6 +133,8 @@ options:
     aliases: []
 author: Cove Schneider
 requirements: [ "docker-py" ]
+notes:
+    - Currently supports Docker version <= 0.6.4 only.
 '''
 
 EXAMPLES = '''
@@ -478,7 +480,7 @@ def main():
         changed = manager.has_changed()
         module.exit_json(failed=True, changed=changed, msg=repr(e))
         
-# this is magic, see lib/ansible/module_common.py
-#<<INCLUDE_ANSIBLE_MODULE_COMMON>>
+# import module snippets
+from ansible.module_utils.basic import *
 
 main()

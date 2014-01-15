@@ -45,6 +45,7 @@ class Connection(object):
         self.password = password
         self.private_key_file = private_key_file
         self.HASHED_KEY_MAGIC = "|1|"
+        self.has_pipelining = False
 
         fcntl.lockf(self.runner.process_lockfile, fcntl.LOCK_EX)
         self.cp_dir = utils.prepare_writeable_dir('$HOME/.ansible/cp',mode=0700)
@@ -116,7 +117,7 @@ class Connection(object):
             os.close(self.wfd)
 
     def not_in_host_file(self, host):
-        host_file = os.path.expanduser("~/.ssh/known_hosts")
+        host_file = os.path.expanduser(os.path.expandvars("~${USER}/.ssh/known_hosts"))
         if not os.path.exists(host_file):
             print "previous known host file not found"
             return True
@@ -144,8 +145,11 @@ class Connection(object):
                     return False
         return True
 
-    def exec_command(self, cmd, tmp_path, sudo_user,sudoable=False, executable='/bin/sh'):
+    def exec_command(self, cmd, tmp_path, sudo_user,sudoable=False, executable='/bin/sh', in_data=None):
         ''' run a command on the remote host '''
+
+        if in_data:
+            raise errors.AnsibleError("Internal Error: this module does not support optimized module pipelining")
 
         ssh_cmd = self._password_cmd()
         ssh_cmd += ["ssh", "-tt"]
@@ -216,8 +220,9 @@ class Connection(object):
         # We can't use p.communicate here because the ControlMaster may have stdout open as well
         stdout = ''
         stderr = ''
+        rpipes = [p.stdout, p.stderr]
         while True:
-            rfd, wfd, efd = select.select([p.stdout, p.stderr], [], [p.stdout, p.stderr], 1)
+            rfd, wfd, efd = select.select(rpipes, [], rpipes, 1)
 
             # fail early if the sudo password is wrong
             if self.runner.sudo and sudoable and self.runner.sudo_pass:
@@ -230,16 +235,19 @@ class Connection(object):
                 dat = os.read(p.stdout.fileno(), 9000)
                 stdout += dat
                 if dat == '':
-                    p.wait()
-                    break
-            elif p.stderr in rfd:
+                    rpipes.remove(p.stdout)
+            if p.stderr in rfd:
                 dat = os.read(p.stderr.fileno(), 9000)
                 stderr += dat
                 if dat == '':
-                    p.wait()
-                    break
-            elif p.poll() is not None:
+                    rpipes.remove(p.stderr)
+            # only break out if we've emptied the pipes, or there is nothing to
+            # read from and the process has finished.
+            if (not rpipes or not rfd) and p.poll() is not None:
                 break
+            # Calling wait while there are still pipes to read can cause a lock
+            elif not rpipes and p.poll() == None:
+                p.wait()
         stdin.close() # close stdin after we read from stdout (see also issue #848)
         
         if C.HOST_KEY_CHECKING and not_in_host_file:
@@ -248,7 +256,12 @@ class Connection(object):
             fcntl.lockf(self.runner.output_lockfile, fcntl.LOCK_UN)
             fcntl.lockf(self.runner.process_lockfile, fcntl.LOCK_UN)
 
-        if p.returncode != 0 and stderr.find('Bad configuration option: ControlPersist') != -1:
+        if C.HOST_KEY_CHECKING:
+            if ssh_cmd[0] == "sshpass" and p.returncode == 6:
+                raise errors.AnsibleError('Using a SSH password instead of a key is not possible because Host Key checking is enabled and sshpass does not support this.  Please add this host\'s fingerprint to your known_hosts file to manage this host.')
+
+        controlpersisterror = stderr.find('Bad configuration option: ControlPersist') != -1 or stderr.find('unknown configuration option: ControlPersist') != -1
+        if p.returncode != 0 and controlpersisterror:
             raise errors.AnsibleError('using -c ssh on certain older ssh versions may not support ControlPersist, set ANSIBLE_SSH_ARGS="" (or ansible_ssh_args in the config file) before running again')
 
         return (p.returncode, '', stdout, stderr)

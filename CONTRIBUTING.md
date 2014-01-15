@@ -32,8 +32,10 @@ Sharing A Feature Idea
 If you have an idea for a new feature, you can open a new ticket at 
 [github.com/ansible/ansible](https://github.com/ansible/ansible), though in general we like to 
 talk about feature ideas first and bring in lots of people into the discussion. Consider stopping 
-by the [Ansible project mailing list](https://groups.google.com/forum/#!forum/ansible-project) or #ansible
-on irc.freenode.net.  
+by the
+[Ansible project mailing list](https://groups.google.com/forum/#!forum/ansible-project) ([Subscribe](https://groups.google.com/forum/#!forum/ansible-project/join))
+or #ansible on irc.freenode.net. There is an overview about more mailing lists
+later in this document.
 
 Helping with Documentation
 --------------------------
@@ -56,9 +58,14 @@ The Ansible project keeps it’s source on github at
 and takes contributions through
 [github pull requests](https://help.github.com/articles/using-pull-requests).
 
+It is usually a good idea to join the ansible-devel list to discuss any large features prior to submission, and this
+especially helps in avoiding duplicate work or efforts where we decide, upon seeing a pull request for the first
+time, that revisions are needed.  (This is not usually needed for module development)
+
 When submitting patches, be sure to run the unit tests first “make tests” and always use 
 “git rebase” vs “git merge” (aliasing git pull to git pull --rebase is a great idea) to 
-avoid merge commits in your submissions.  
+avoid merge commits in your submissions.  We will require resubmission of pull requests that
+contain merge commits.
 
 We’ll then review your contributions and engage with you about questions and  so on.  Please be 
 advised we have a very large and active community, so it may take awhile to get your contributions 
@@ -66,7 +73,7 @@ in!  Patches should be made against the 'devel' branch.
 
 Contributions can be for new features like modules, or to fix bugs you or others have found. If you 
 are interested in writing new modules to be included in the core Ansible distribution, please refer 
-to the [Module Developers documentation on our website](http://www.ansibleworks.com/docs/moduledev.html).
+to the [Module Developers documentation on our website](http://www.ansibleworks.com/docs/developing_modules.html).
 
 Ansible's aesthetic encourages simple, readable code and consistent, conservatively extending, 
 backwards-compatible improvements.  Code developed for Ansible needs to support Python 2.6+, 
@@ -84,14 +91,14 @@ Bugs should be reported to [github.com/ansible/ansible](http://github.com/ansibl
 signing up for a free github account.  Before reporting a bug, please use the bug/issue search 
 to see if the issue has already been reported.  
 
-When filing a bug, the following information is required:
+When filing a bug, the following information is always required:
 
 * A good name for the bug ("Foo module raises exception when xyz=glork is used", vs "foo doesn't work")
 * A succint description of the problem
 * What version of ansible you are using (ansible --version)
-* Steps to reproduce the problem
+* Steps to reproduce the problem, including commands or playbook snippets as relevant
 * Expected results
-* Actual results
+* Actual results, and as full/complete output as possible
 
 Do not use the issue tracker for "how do I do this" type questions.  These are great candidates
 for IRC or the mailing list instead where things are likely to be more of a discussion.
